@@ -19,6 +19,7 @@ public class noiseboxsketch extends PApplet {
 		pd.unpackAndOpenPatch(zipId, "_metabox1.pd");
 //		pd.subscribe("foo");  // Uncomment if you want to receive messages sent to the receive symbol "foo" in Pd.
 		pd.start();
+		patchman.setup();
 	}
 	
 	public void stop() {

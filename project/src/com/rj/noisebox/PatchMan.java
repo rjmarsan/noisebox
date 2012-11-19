@@ -8,37 +8,94 @@ import android.view.MotionEvent;
 
 public class PatchMan {
 	public final static String TAG = "PatchManager";
+	
+	public static String PATCH_PREFIX = "1";
+	public static String TOUCH_ON =    PATCH_PREFIX+"-on";
+	public static String TOUCH_OFF =   PATCH_PREFIX+"-off";
+	public static String NOTE_SET =    PATCH_PREFIX+"-basenote";
+	public static String NOTE_VOL =    PATCH_PREFIX+"-vol";
+	public static String NOTE_WAVE =   PATCH_PREFIX+"-wave";
+	public static String SEQ_WIDTH =   PATCH_PREFIX+"-width";
+	public static String SEQ_SPEED =   PATCH_PREFIX+"-speed";
+	public static String SEQ_WRAP =    PATCH_PREFIX+"-wrap";
+	
 	PApplet p;
 	SketchLayer layer;
 	PureDataP5Android pd;
 	
 	int mainpointerid = -1;
 	int secondpointerid = -1;
+	float mainx;
+	float mainy;
+	float secondx;
+	
+	float note;
+	float speed;
+	float stepwidth;
 	
 	public PatchMan(PApplet p, SketchLayer layer, PureDataP5Android pd) {
 		this.layer = layer;
 		this.p = p;
 		this.pd = pd;
 	}
+
+	
+	public void setup() {
+		initpd();
+	}
 	
 	
 	
-	
+	private void initpd() {
+		send(NOTE_VOL, 1f);
+		send(NOTE_WAVE, 2f);
+		send(SEQ_WIDTH, 1f);
+		send(SEQ_SPEED, 0.6f);
+		send(SEQ_WRAP, 4f);
+	}
 	
 	private void mainTouchDown() {
-		pd.sendFloat("1-on", 1);
+		send(TOUCH_ON, 1);
 	}
 	private void mainTouchUp() {
-		pd.sendFloat("1-off", 1);
+		send(TOUCH_OFF, 0);
+	}
+	private void updatePitch() {
+		updateValues();
+		send(NOTE_SET, note);
+		send(SEQ_WIDTH, stepwidth);
+		send(SEQ_SPEED, speed);
+	}
+	private void updateValues() {
+		note = getPitch();
+		speed = getSpeed();
+		if (layer.seconddown) stepwidth = getNoteWidth();
 	}
 	
-	private void updatePitch() {
+	
+	
+	private float getNoteWidth() {
+		return (secondx-mainx)*8;
+	}
+	private float getSpeed() {
+		return (mainy*mainy)*20;
+	}
+	private float getPitch() {
+		return 40f+mainx*60f;
+	}
+	
+	
+	
+	private void send(String tag, float value) {
+		Log.d(TAG, "Sending: "+tag+ " val:"+value);
+		pd.sendFloat(tag, value);
+	}
+	
+	
+	
+	public void receiveFloat(String source, float x) {
 		
 	}
-	
-	
-	
-	
 	
 	
 	
@@ -54,6 +111,7 @@ public class PatchMan {
 					mainpointerid = id;
 					layer.maindown = true;
 					Log.d(TAG, "Main pointer down "+id+", "+i);
+					mainTouchDown();
 				} else if (secondpointerid == -1 && id != mainpointerid) {
 					secondpointerid = id;
 					layer.seconddown = true;
@@ -78,6 +136,7 @@ public class PatchMan {
 			if (maindown == false) {
 				mainpointerid = -1;
 				layer.maindown = false;
+				mainTouchUp();
 			}
 			if (seconddown == false){
 				secondpointerid = -1;
@@ -91,6 +150,7 @@ public class PatchMan {
 				layer.maindown = false;
 				secondpointerid = -1;
 				layer.seconddown = false;
+				mainTouchUp();
 			}
 		}
 		
@@ -99,14 +159,16 @@ public class PatchMan {
 			if (id == mainpointerid) {
 				layer.mainx = event.getX(i);
 				layer.mainy = event.getY(i);
+				mainx = layer.mainx / p.width;
+				mainy = (p.height-layer.mainy) / p.height;
 			} else if (id == secondpointerid) {
 				layer.secondx = event.getX(i);
 				layer.secondy = event.getY(i);
+				secondx = layer.secondx / p.width;
 			}
 		}
 		
+		updatePitch();
 	}
 	
-	public void receiveFloat(String source, float x) {
-	}
 }
