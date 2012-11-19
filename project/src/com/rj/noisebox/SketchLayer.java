@@ -208,24 +208,6 @@ public class SketchLayer {
 	}
 
 	public void surfaceTouchEvent(MotionEvent event) {
-		if (event.getPointerCount() >= 2) {
-			maindown = true;
-			seconddown = true;
-			mainx = event.getX(0);
-			mainy = event.getY(0);
-			secondx = event.getX(1);
-			secondy = event.getY(1);
-		} else if (event.getPointerCount() == 1) {
-			maindown = true;
-			seconddown = false;
-			if (event.getAction() == MotionEvent.ACTION_MOVE) {
-				mainx = event.getX(0);
-				mainy = event.getY(0);
-			}
-		} else {
-			maindown = false;
-			seconddown = false;
-		}
 	}
 
 
